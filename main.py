@@ -1,21 +1,33 @@
 import sys
 from main_window import MainWindow
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import (QApplication, QLabel)
+from PySide6.QtWidgets import (QApplication)
+from display import Display
 from variabels import WINDOW_ICON_PATH
-
-
+from info import Infor
+from styles import setupTheme
+from buttons import ButtonsGrid
 if __name__ == '__main__':
+
     app = QApplication(sys.argv)
+    
+    # Style da aplicação
+    setupTheme()
 
     # Cria a janela principal
     window = MainWindow()
 
-    labe1 = QLabel('O meu texto')
-    labe1.setStyleSheet('font-size: 60px')
+    # Info
+    info_label = Infor('2.0 ^ 10.0 = 1024')
+    window.addWidgetToVLayout(info_label)
 
-    # Add o widget de label criado para a layot da janela
-    window.addWidgetToVLayout(labe1)
+    # Display
+    display = Display()
+    window.addWidgetToVLayout(display)
+    
+    # GridButton
+    buttonsGrid = ButtonsGrid(display)
+    window.v_layout.addLayout(buttonsGrid)
 
     # Exibe a janela principal
     window.show()
@@ -23,6 +35,7 @@ if __name__ == '__main__':
     # Setando o icone da aplicação
     icon = QIcon(str(WINDOW_ICON_PATH))
     window.setWindowIcon(icon)
-    
+
+    window.adjustSize()
     # Executa a aplicação
     app.exec()
