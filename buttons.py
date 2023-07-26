@@ -3,11 +3,12 @@ from variabels import MEDIUM_FONT_SIZE
 from utils import isEmpty, isNumOrDot, isValidNumber
 from PySide6.QtCore import Slot
 from typing import TYPE_CHECKING
-
+import math
 
 if TYPE_CHECKING:
     from display import Display
     from info import Infor
+    from main_window import MainWindow
 
 
 class Button(QPushButton):
@@ -24,7 +25,8 @@ class Button(QPushButton):
 
 class ButtonsGrid(QGridLayout):
     def __init__(
-            self, display: 'Display', info: 'Infor', *args, **kwargs) -> None:
+            self, display: 'Display', info: 'Infor', window: 'MainWindow',
+            *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._grid_mask = [
             ['C', '◀', '^', '/'],
@@ -35,6 +37,7 @@ class ButtonsGrid(QGridLayout):
         ]
         self.display = display
         self.info = info
+        self.window = window
         self._equation = ''
         self._equationInitialValue = 'Sua conta'
         self._left = None
@@ -52,8 +55,16 @@ class ButtonsGrid(QGridLayout):
     def equation(self, value):
         self._equation = value
         self.info.setText(value)
+    
+    def vouAPagarvc(self, text):
+        print('siginial recebido em ', type(self).__name__)
 
     def _makeGrid(self):
+        self.display.eqPressed.connect(self.vouAPagarvc)
+        self.display.delPressed.connect(self.display.backspace)
+        self.display.clearPressed.connect(self.vouAPagarvc)
+        self.display.inputPressed.connect(self.vouAPagarvc)
+
         for i, row in enumerate(self._grid_mask):
             for j, button_text in enumerate(row):
                 button = Button(button_text)
@@ -73,10 +84,13 @@ class ButtonsGrid(QGridLayout):
     def _configSpecialButton(self, button):
         text = button.text()
 
+        if text == '◀':
+            self._connectButtonClicked(button, self.display.backspace)
+        
         if text == 'C':
             self._connectButtonClicked(button, self._clear)
         
-        if text in '+-/*':   
+        if text in '+-/*^':   
             self._connectButtonClicked(
                 button, 
                 self._makeSlot(self._operatorClicked, button)
@@ -115,7 +129,7 @@ class ButtonsGrid(QGridLayout):
         self.display.clear()  # Limpa o display
         
         if not isValidNumber(displayText) and self._left is None:
-            print('n tem nada para colocar no valor da esquerda')
+            self._showError('Vc n digitou nada')
             return
 
         if self._left is None:
@@ -128,17 +142,45 @@ class ButtonsGrid(QGridLayout):
         displayText = self.display.text()
 
         if not isValidNumber(displayText):
-            print('N tenho nada para a direita')
+            self._showError('N tenho nada para a direita')
             return
         
         self._right = float(displayText)
         self.equation = f'{self._left} {self._op} {self._right}'
+        result = 'error'
 
         try:
-            result = eval(self.equation)
+            if '^' in self.equation and isinstance(self._left, float):
+                result = math.pow(self._left, self._right)
+            else:    
+                result = eval(self.equation)
             print(result)
         except ZeroDivisionError:
             print('Zero divios error')
+        except OverflowError:
+            print('Numero muito grande')
         
         self.display.clear()
         self.info.setText(f'{self.equation} = {result}')
+        self._left = result
+        self._right = None
+
+        if result == 'error':
+            self._left = None
+        
+    def _makeDialog(self, text):
+        msgBox = self.window.makeMsgBox()
+        msgBox.setText(text)
+        return msgBox
+        
+    def _showError(self, text):
+        msgBox = self._makeDialog(text)
+        msgBox.setIcon(msgBox.Icon.Critical)
+        msgBox.exec()
+        
+    def _showInfo(self, text):
+        msgBox = self.window.makeMsgBox()
+        msgBox.setTxt(text)
+        msgBox.setIcon(msgBox.Icon.Information)
+        msgBox.exec()
+    

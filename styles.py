@@ -36,3 +36,4 @@ def setupTheme():
         },
         additional_qss=qss
     )
+

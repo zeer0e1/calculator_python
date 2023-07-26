@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout,)
+from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QMessageBox)
 
 
 class MainWindow(QMainWindow):
@@ -27,3 +27,6 @@ class MainWindow(QMainWindow):
     def addWidgetToVLayout(self, widget: QWidget):
         self.v_layout.addWidget(widget)
         # Corrigindo o tamanho da janela para caber todos os elementos
+    
+    def makeMsgBox(self):
+        return QMessageBox(self)

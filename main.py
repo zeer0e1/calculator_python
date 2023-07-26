@@ -26,7 +26,7 @@ if __name__ == '__main__':
     window.addWidgetToVLayout(display)
 
     # GridButton
-    buttonsGrid = ButtonsGrid(display, info_label)
+    buttonsGrid = ButtonsGrid(display, info_label, window)
     window.v_layout.addLayout(buttonsGrid)
 
     # Setando o icone da aplicação
